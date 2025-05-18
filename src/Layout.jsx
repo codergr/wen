@@ -102,11 +102,6 @@ function Layout() {
     const filteredRecords = records.filter(record => record.petName === selectedPet);
     return (
         <div>
-            <div className="fixed top-0 left-0 w-screen h-screen pointer-events-none z-0 flex items-center justify-center">
-                <div className="text-[52px] font-bold text-gray-600 opacity-15 text-center rotate-[-45deg] whitespace-pre leading-snug">
-                    This is a demo version{"\n"}WhiskEraNote{"\n"}Made By W. M. Lai
-                </div>
-            </div>
             <header className="h-16 px-6 bg-[#e5ece5] flex items-center text-xl font-semibold text-[#2f4f4f]">
                 <button
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
