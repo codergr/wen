@@ -83,13 +83,14 @@ function Layout() {
     const [symptoms, setSymptoms] = useState([]);
     const [records, setRecords] = useState([]);
     useEffect(() => {
-        if (activePage === PAGES.HOME) {
-            const stored = localStorage.getItem("records");
-            if (stored) {
-                setRecords(JSON.parse(stored));
-            }
+        const stored = localStorage.getItem("records");
+        if (stored) {
+            setRecords(JSON.parse(stored));
+        } else {
+            setRecords([]);
         }
-    }, [activePage, PAGES.HOME]);
+    }, [activePage]);
+
     const [pets, setPets] = useState([{ name: "B寶", isDeceased: false }]);
     const [newPet, setNewPet] = useState("");
     const [petError, setPetError] = useState("");
