@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClipboardList,faCircleInfo,faPaw,faHouse,faBars,faXmark,faPlus,faChartLine,faCopyright,faInfo} from '@fortawesome/free-solid-svg-icons';
 function Layout() {
     const PAGES = {
         HOME: 'home',
         NEWPET: 'newPet',
         ADD: 'addRecord',
         OVERVIEW: 'recOverview',
+        INFO: 'imformation'
     };
     const exportToPDF = () => {
         const input = document.getElementById("reportArea");
@@ -108,31 +111,36 @@ function Layout() {
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     className="mr-4 text-2xl"
                     title={isSidebarOpen ? "收合側邊欄" : "展開側邊欄"}>
-                    {isSidebarOpen ? "◀" : "▶"}
+                    {isSidebarOpen ? <FontAwesomeIcon icon={faXmark} /> : <FontAwesomeIcon icon={faBars} />}
                 </button>
                 WhiskEraNote
             </header>
             <div className="flex">
-                <aside className={`${isSidebarOpen ? "w-64" : "w-0 overflow-hidden"} flex flex-col bg-gray-100 h-screen text-lg font-medium`}>
+                <aside className={`${isSidebarOpen ? "w-64" : "w-0 overflow-hidden"} flex flex-col bg-gray-100 h-screen text-lg font-medium transition-all duration-300`}>
                     <div className={`flex items-center py-2 px-4 rounded cursor-pointer transition hover:bg-[#e5ece5] ${activePage === PAGES.HOME ? 'bg-[#d2dcd3] border-l-4 border-[#9daea1] text-[#2f3f33] font-semibold' : 'text-[#3b4a3e]'}`}
                         onClick={() => setActivePage(PAGES.HOME)}>
-                        <span>🏡</span>
+                        <span><FontAwesomeIcon icon={faHouse} /></span>
                         <span className="ml-2">首頁</span>
                     </div>
                     <div className={`flex items-center py-2 px-4 rounded cursor-pointer transition hover:bg-[#e5ece5] ${activePage === PAGES.NEWPET ? 'bg-[#d2dcd3] border-l-4 border-[#9daea1] text-[#2f3f33] font-semibold' : 'text-[#3b4a3e]'}`}
                         onClick={() => setActivePage(PAGES.NEWPET)}>
-                        <span>🐈</span>
+                        <span><FontAwesomeIcon icon={faPaw} /></span>
                         <span className="ml-2">寵物管理</span>
                     </div>
                     <div className={`flex items-center py-2 px-4 rounded cursor-pointer transition hover:bg-[#e5ece5] ${activePage === PAGES.ADD ? 'bg-[#d2dcd3] border-l-4 border-[#9daea1] text-[#2f3f33] font-semibold' : 'text-[#3b4a3e]'}`}
                         onClick={() => setActivePage(PAGES.ADD)}>
-                        <span>➕</span>
+                        <span><FontAwesomeIcon icon={faPlus} /></span>
                         <span className="ml-2">新增紀錄</span>
                     </div>
                     <div className={`flex items-center py-2 px-4 rounded cursor-pointer transition hover:bg-[#e5ece5] ${activePage === PAGES.OVERVIEW ? 'bg-[#d2dcd3] border-l-4 border-[#9daea1] text-[#2f3f33] font-semibold' : 'text-[#3b4a3e]'}`}
                         onClick={() => setActivePage(PAGES.OVERVIEW)}>
-                        <span>📜</span>
+                        <span><FontAwesomeIcon icon={faClipboardList} /></span>
                         <span className="ml-2">紀錄總覽</span>
+                    </div>
+                    <div className={`flex items-center py-2 px-4 rounded cursor-pointer transition hover:bg-[#e5ece5] ${activePage === PAGES.INFO ? 'bg-[#d2dcd3] border-l-4 border-[#9daea1] text-[#2f3f33] font-semibold' : 'text-[#3b4a3e]'}`}
+                        onClick={() => setActivePage(PAGES.INFO)}>
+                        <span><FontAwesomeIcon icon={faCircleInfo} /></span>
+                        <span className="ml-2">關於專案</span>
                     </div>
                 </aside>
                 <main className={`flex-1 p-6 bg-[#fffdf5] overflow-y-auto transition-all duration-300 ${isSidebarOpen ? "ml-0" : "ml-0"}`}>
@@ -143,7 +151,7 @@ function Layout() {
                             {/* <ul className="text-red-500 font-bold">初次使用請先至<button className="bg-[#9daea1] text-white px-2 py-25 rounded hover:bg-[#7f9184] transition" onClick={() => setActivePage(PAGES.NEWPET)}>🐈 寵物管理</button>新增您的寵物</ul> */}
                             <div id="reportArea">
                                 <div className="mt-6">
-                                    <h2 className="text-xl font-bold mb-2">📈 報表</h2>
+                                    <h2 className="text-xl font-bold mb-2"><FontAwesomeIcon icon={faChartLine} /> 報表</h2>
                                     <select
                                         value={selectedPet}
                                         onChange={(e) => setSelectedPet(e.target.value)}
@@ -387,6 +395,23 @@ function Layout() {
                                     ))}
                                 </div>
                             )}
+                        </div>
+                    )}
+                    {activePage === PAGES.INFO && (
+                        <div>
+                            <div className="bg-gray-100 border border-gray-500 rounded-xl px-4 py-2">
+                                <h2 className="font-bold text-xl"><FontAwesomeIcon icon={faInfo} />&nbsp;WhiskEraNote是甚麼？</h2>
+                                WhiskEraNote是一旨在讓寵物主人可以輕鬆、毫無負擔地紀錄寵物健康狀況的專案，不需要雲端、不用帳號登入，資料存在自己的裝置，
+        安心又便利，陪你一起守護毛孩的每一天。
+                            </div>
+                            
+                            <div className="mt-4 bg-gray-100 border border-gray-500 rounded-xl px-4 py-2">
+                                <h2 className="font-bold text-xl"><FontAwesomeIcon icon={faCopyright} />&nbsp;Copyright Imformation</h2>
+                                Icon by Font Awesome, distributed under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" className="text-green-600 underline underline-dotted decoration-pink-400 hover:text-green-800">Creative Commons Attribution 4.0 International License</a>.
+                            </div>
+                            <div className="mt-4 bg-gray-100 border border-gray-500 rounded-xl px-4 py-2">
+                                v1.0.9 – Released to production
+                            </div>
                         </div>
                     )}
                 </main>
