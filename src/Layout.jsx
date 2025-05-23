@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClipboardList,faCircleInfo,faPaw,faHouse,faBars,faXmark,faPlus,faChartLine,faCopyright,faInfo} from '@fortawesome/free-solid-svg-icons';
+import { faClipboardList, faCircleInfo, faPaw, faHouse, faBars, faXmark, faPlus, faChartLine, faCopyright, faInfo, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 function Layout() {
     const PAGES = {
         HOME: 'home',
@@ -40,7 +40,9 @@ function Layout() {
     const [successMessage, setSuccessMessage] = useState("");
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [selectedPet, setSelectedPet] = useState("");
-
+    const [showQuickAddPet, setShowQuickAddPet] = useState(false);
+    const [quickPetName, setQuickPetName] = useState("");
+    const [quickPetError, setQuickPetError] = useState("");
     const SLEEP_LABELS = {
         aboveTwentyTwo: "22小時（含）以上",
         aboveSixteen: "16小時（含）以上，未滿22小時",
@@ -63,12 +65,21 @@ function Layout() {
             setSuccessMessage("");
             return;
         }
+        const oldRecords = JSON.parse(localStorage.getItem("records")) ?? [];
+        const isDuplicate = oldRecords.some(
+            (record) => record.petName === petName && record.date === date
+        );
+        if (isDuplicate) {
+            setErrorMessage(`❌ ${petName} 在 ${date} 已經有紀錄了！請勿重複登錄。`);
+            setSuccessMessage("");
+            return;
+        }
         setErrorMessage("");
         console.log("送出資料：", { petName, date, weight, appetite, water, sleep, symptoms, note });
         const newRecord = { petName, date, weight, appetite, water, sleep, symptoms, note };
 
-        const oldRecords = JSON.parse(localStorage.getItem("records")) ?? [];
-        const updatedRecords = [newRecord, ...oldRecords];
+        const updatedRecords = [...oldRecords, newRecord];
+        updatedRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
         localStorage.setItem("records", JSON.stringify(updatedRecords));
         setPetName("");
         setDate("");
@@ -269,19 +280,57 @@ function Layout() {
                         <div>
                             <h1 className='text-2xl font-bold mb-2'>新增紀錄</h1>
                             <form className="space-y-4 max-w-xl bg-[#f9f5e9] p-6 rounded shadow-md" onSubmit={handleSubmit}>
-                                {errorMessage && (
-                                    <div className="bg-red-100 border border-red-400 text-red-400 text-red-700 px-4 py-2 rounded">
-                                        {errorMessage}
-                                    </div>
-                                )}
                                 <div>
                                     <label htmlFor="nameOfPet" className="block font-bold mb-1 text-gray-700">寵物名字</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowQuickAddPet(!showQuickAddPet)}
+                                        className="text-sm text-blue-600 hover:underline mt-1"
+                                    >
+                                        <FontAwesomeIcon icon={showQuickAddPet ? faXmark : faPenToSquare} />
+                                        <span>{showQuickAddPet ? "取消新增" : "新增寵物"}</span>
+                                    </button>
+                                    {showQuickAddPet && (
+                                        <div className="mt-2 flex items-conter space-x-2">
+                                            <input
+                                                type="text"
+                                                placeholder="輸入寵物名字"
+                                                value={quickPetName}
+                                                onChange={(e) => setQuickPetName(e.target.value)}
+                                                className="border p-2 rounded w-64"
+                                            />
+                                            <button
+                                            type="button"
+                                            className="bg-[#9daea1] text-white px-4 py-2 rounded hover:bg-[#7f9184] transition"
+                                            onClick={()=>{
+                                                const trimmed=quickPetName.trim();
+                                                if(!trimmed){
+                                                    setQuickPetError("請輸入寵物名字！")
+                                                } else if (pets.some(p=>p.name===trimmed)){
+                                                    setQuickPetError("這隻寵物已註冊！");
+                                                }else{
+                                                    const updatedPets=[...pets,{name:trimmed, isDeceased:false}];
+                                                    setPets(updatedPets);
+                                                    localStorage.setItem("pets",JSON.stringify(updatedPets));
+                                                    setPetName(trimmed);
+                                                    setQuickPetName("");
+                                                    setQuickPetError("");
+                                                    setShowQuickAddPet(false);
+                                                }
+                                            }}
+                                            >
+                                                新增
+                                            </button>
+                                        </div>
+                                    )}
+                                    {quickPetError&&<p className="text-red-600 text-sm">{quickPetError}</p>}
                                     <select id="nameOfPet" className="border p-2 w-full rounded" value={petName} onChange={(e) => setPetName(e.target.value)}>
                                         <option value="">請選擇</option>
                                         {pets.map((pet) => (
                                             <option key={pet.name} value={pet.name} disabled={pet.isDeceased}>{pet.name}{pet.isDeceased ? "（歿）" : ""}</option>
                                         ))}
                                     </select>
+                                    
                                 </div>
                                 <div>
                                     <label htmlFor="date" className="block font-bold mb-1 text-gray-700">日期</label>
@@ -357,6 +406,11 @@ function Layout() {
                                 </div>
                                 <div className="flex items-center justify-end space-x-4">
                                     {
+                                        errorMessage && (
+                                            <span className="text-red-600 text-sm">{errorMessage}</span>
+                                        )
+                                    }
+                                    {
                                         successMessage && (
                                             <span className="text-green-600 text-sm">{successMessage}</span>
                                         )
@@ -402,16 +456,13 @@ function Layout() {
                             <div className="bg-gray-100 border border-gray-500 rounded-xl px-4 py-2">
                                 <h2 className="font-bold text-xl"><FontAwesomeIcon icon={faInfo} />&nbsp;WhiskEraNote是甚麼？</h2>
                                 WhiskEraNote是一旨在讓寵物主人可以輕鬆、毫無負擔地紀錄寵物健康狀況的專案，不需要雲端、不用帳號登入，資料存在自己的裝置，
-        安心又便利，陪你一起守護毛孩的每一天。
+                                安心又便利，陪你一起守護毛孩的每一天。
                             </div>
-                            
+
                             <div className="mt-4 bg-gray-100 border border-gray-500 rounded-xl px-4 py-2">
-                                <h2 className="font-bold text-xl"><FontAwesomeIcon icon={faCopyright} />&nbsp;Copyright Imformation</h2>
                                 Icon by Font Awesome, distributed under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" className="text-green-600 underline underline-dotted decoration-pink-400 hover:text-green-800">Creative Commons Attribution 4.0 International License</a>.
                             </div>
-                            <div className="mt-4 bg-gray-100 border border-gray-500 rounded-xl px-4 py-2">
-                                v1.0.9 – Released to production
-                            </div>
+                            
                         </div>
                     )}
                 </main>
